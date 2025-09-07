@@ -7,74 +7,67 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: #000;
     color: #ffffff;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     line-height: 1.6;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* Header */
-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-header h1 {
-    font-size: 2.5rem;
-    font-weight: 300;
-    margin-bottom: 10px;
-    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-header p {
-    font-size: 1.1rem;
-    opacity: 0.8;
-}
-
-/* Main layout */
-main {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 30px;
-    align-items: start;
-}
-
-/* Viewer container */
-.viewer-container {
-    position: relative;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
+/* Fullscreen canvas */
 #julia-canvas {
-    width: 100%;
-    height: auto;
-    max-width: 800px;
-    border-radius: 10px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     display: block;
     cursor: grab;
     background: #000;
+    z-index: 1;
 }
 
 #julia-canvas:active {
     cursor: grabbing;
 }
 
+/* Cog icon for controls */
+.cog-icon {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.cog-icon:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1) rotate(90deg);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.cog-icon i {
+    font-size: 20px;
+    color: #4ecdc4;
+    transition: transform 0.3s ease;
+}
+
+.cog-icon:hover i {
+    transform: rotate(-90deg);
+}
+
 .loading {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -83,6 +76,9 @@ main {
     border-radius: 10px;
     font-size: 1.1rem;
     display: none;
+    z-index: 2000;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .loading.show {
@@ -91,13 +87,57 @@ main {
 
 /* Controls panel */
 .controls-panel {
-    background: rgba(255, 255, 255, 0.1);
+    position: fixed;
+    top: 20px;
+    right: 80px;
+    width: 320px;
+    max-height: calc(100vh - 40px);
+    background: rgba(0, 0, 0, 0.9);
     border-radius: 15px;
     padding: 25px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    height: fit-content;
+    backdrop-filter: blur(15px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    overflow-y: auto;
+}
+
+.controls-panel.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: rgba(255, 107, 107, 0.2);
+    transform: scale(1.1);
 }
 
 .controls-panel h3 {
@@ -193,32 +233,52 @@ main {
     transform: translateY(0);
 }
 
-/* Footer */
-footer {
-    text-align: center;
-    margin-top: 40px;
-    padding-top: 20px;
+/* Help text */
+.help-text {
+    margin-top: 20px;
+    padding-top: 15px;
     border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+}
+
+.help-text p {
     opacity: 0.7;
-    font-size: 0.9rem;
+    color: #4ecdc4;
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
-    main {
-        grid-template-columns: 1fr;
+    .cog-icon {
+        top: 15px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
     }
     
-    .container {
-        padding: 15px;
-    }
-    
-    header h1 {
-        font-size: 2rem;
+    .cog-icon i {
+        font-size: 18px;
     }
     
     .controls-panel {
-        margin-top: 20px;
+        top: 15px;
+        right: 70px;
+        width: calc(100vw - 85px);
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .controls-panel {
+        top: 70px;
+        right: 15px;
+        left: 15px;
+        width: auto;
+        max-width: none;
+        transform: translateY(-100%);
+    }
+    
+    .controls-panel.show {
+        transform: translateY(0);
     }
 }
 
@@ -234,11 +294,19 @@ footer {
     }
 }
 
-.viewer-container,
-.controls-panel {
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.cog-icon {
     animation: fadeIn 0.6s ease-out;
 }
 
-.controls-panel {
-    animation-delay: 0.2s;
+.cog-icon.spinning i {
+    animation: spin 0.5s ease-in-out;
 }

@@ -22,6 +22,9 @@ class JuliaSetViewer {
         this.lastMouseX = 0;
         this.lastMouseY = 0;
         
+        // UI state
+        this.controlsVisible = false;
+        
         this.init();
     }
     
@@ -30,6 +33,9 @@ class JuliaSetViewer {
      */
     init() {
         try {
+            // Set canvas size to match viewport
+            this.resizeCanvas();
+            
             // Get WebGL context
             this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
             
@@ -48,6 +54,9 @@ class JuliaSetViewer {
             // Set up event listeners
             this.setupEventListeners();
             
+            // Set up UI event listeners
+            this.setupUIEventListeners();
+            
             // Hide loading indicator
             document.getElementById('loading').classList.remove('show');
             
@@ -57,6 +66,28 @@ class JuliaSetViewer {
         } catch (error) {
             console.error('Failed to initialize WebGL:', error);
             this.showError('WebGL initialization failed: ' + error.message);
+        }
+    }
+    
+    /**
+     * Resize canvas to match viewport
+     */
+    resizeCanvas() {
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        const displayWidth = window.innerWidth;
+        const displayHeight = window.innerHeight;
+        
+        // Set the canvas size in CSS pixels
+        this.canvas.style.width = displayWidth + 'px';
+        this.canvas.style.height = displayHeight + 'px';
+        
+        // Set the canvas resolution (considering device pixel ratio for crisp rendering)
+        this.canvas.width = displayWidth * devicePixelRatio;
+        this.canvas.height = displayHeight * devicePixelRatio;
+        
+        if (this.gl) {
+            this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            this.render();
         }
     }
     
@@ -294,6 +325,69 @@ class JuliaSetViewer {
             
             this.render();
         });
+        
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            this.resizeCanvas();
+        });
+    }
+    
+    /**
+     * Set up UI event listeners for controls panel
+     */
+    setupUIEventListeners() {
+        const cogIcon = document.getElementById('cog-icon');
+        const controlsPanel = document.getElementById('controls-panel');
+        const closeButton = document.getElementById('close-controls');
+        
+        // Toggle controls panel
+        cogIcon.addEventListener('click', () => {
+            this.toggleControls();
+        });
+        
+        // Close controls panel
+        closeButton.addEventListener('click', () => {
+            this.hideControls();
+        });
+        
+        // Close controls when clicking outside (on canvas)
+        this.canvas.addEventListener('click', (e) => {
+            if (this.controlsVisible && !this.isDragging) {
+                this.hideControls();
+            }
+        });
+        
+        // Prevent closing when clicking inside controls panel
+        controlsPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+    
+    /**
+     * Toggle controls panel visibility
+     */
+    toggleControls() {
+        const cogIcon = document.getElementById('cog-icon');
+        const controlsPanel = document.getElementById('controls-panel');
+        
+        this.controlsVisible = !this.controlsVisible;
+        
+        if (this.controlsVisible) {
+            controlsPanel.classList.add('show');
+            cogIcon.classList.add('spinning');
+            setTimeout(() => cogIcon.classList.remove('spinning'), 500);
+        } else {
+            controlsPanel.classList.remove('show');
+        }
+    }
+    
+    /**
+     * Hide controls panel
+     */
+    hideControls() {
+        const controlsPanel = document.getElementById('controls-panel');
+        controlsPanel.classList.remove('show');
+        this.controlsVisible = false;
     }
     
     /**

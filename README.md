@@ -19,3 +19,7 @@ from your web browser.
 
 2. **Run the WebGL viewer:** Open `index.html` in your web browser.
 
+## Mathematical Background
+
+For more information on how these calculations are done and their affects on the fractal shape,
+please visit https://www.karlsims.com/julia.html! 
