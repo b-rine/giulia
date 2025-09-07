@@ -10,8 +10,8 @@ class JuliaSetViewer {
         this.program = null;
         
         // Julia set parameters
-        this.juliaReal = -0.7;      // Real part of the complex parameter c
-        this.juliaImag = 0.27015;   // Imaginary part of the complex parameter c
+        this.juliaReal = -0.7;      // Real component of the complex parameter c
+        this.juliaImag = 0.27015;   // Imaginary component of the complex parameter c
         this.zoom = 1.0;            // Zoom level
         this.offsetX = 0.0;         // Pan offset X
         this.offsetY = 0.0;         // Pan offset Y
