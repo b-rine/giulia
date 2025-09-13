@@ -25,6 +25,12 @@ body {
     cursor: grab;
     background: #000;
     z-index: 1;
+    touch-action: none; /* Prevent default touch behaviors */
+    -webkit-touch-callout: none; /* Prevent callout on iOS */
+    -webkit-user-select: none; /* Prevent text selection */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #julia-canvas:active {

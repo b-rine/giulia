@@ -22,6 +22,13 @@ class JuliaSetViewer {
         this.lastMouseX = 0;
         this.lastMouseY = 0;
         
+        // Touch interaction
+        this.isTouching = false;
+        this.lastTouchX = 0;
+        this.lastTouchY = 0;
+        this.lastTouchDistance = 0;
+        this.lastZoom = 1.0;
+        
         // UI state
         this.controlsVisible = false;
         
@@ -326,10 +333,92 @@ class JuliaSetViewer {
             this.render();
         });
         
+        // Touch events for mobile
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                // Single touch - start panning
+                this.isTouching = true;
+                this.lastTouchX = e.touches[0].clientX;
+                this.lastTouchY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                // Two touches - start pinch zoom
+                this.isTouching = true;
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                this.lastTouchDistance = this.getTouchDistance(touch1, touch2);
+                this.lastZoom = this.zoom;
+                
+                // Calculate center point for zoom
+                this.lastTouchX = (touch1.clientX + touch2.clientX) / 2;
+                this.lastTouchY = (touch1.clientY + touch2.clientY) / 2;
+            }
+        });
+        
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!this.isTouching) return;
+            
+            if (e.touches.length === 1) {
+                // Single touch - panning (increased sensitivity for mobile)
+                const deltaX = (e.touches[0].clientX - this.lastTouchX) / this.canvas.width;
+                const deltaY = (e.touches[0].clientY - this.lastTouchY) / this.canvas.height;
+                
+                // Increased sensitivity factor for mobile touch
+                const sensitivity = 3.0;
+                this.offsetX -= deltaX * sensitivity / this.zoom;
+                this.offsetY += deltaY * sensitivity / this.zoom;
+                
+                this.lastTouchX = e.touches[0].clientX;
+                this.lastTouchY = e.touches[0].clientY;
+                
+                this.render();
+            } else if (e.touches.length === 2) {
+                // Two touches - pinch zoom
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const currentDistance = this.getTouchDistance(touch1, touch2);
+                
+                if (this.lastTouchDistance > 0) {
+                    const zoomFactor = currentDistance / this.lastTouchDistance;
+                    this.zoom = this.lastZoom * zoomFactor;
+                    this.zoom = Math.max(0.1, Math.min(10.0, this.zoom));  // Clamp zoom
+                    
+                    // Update UI
+                    zoomSlider.value = this.zoom;
+                    zoomValue.textContent = this.zoom.toFixed(1);
+                    
+                    this.render();
+                }
+            }
+        });
+        
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.isTouching = false;
+            this.lastTouchDistance = 0;
+        });
+        
+        // Prevent default touch behaviors
+        this.canvas.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            this.isTouching = false;
+            this.lastTouchDistance = 0;
+        });
+        
         // Window resize handler
         window.addEventListener('resize', () => {
             this.resizeCanvas();
         });
+    }
+    
+    /**
+     * Calculate distance between two touch points
+     */
+    getTouchDistance(touch1, touch2) {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
     }
     
     /**
